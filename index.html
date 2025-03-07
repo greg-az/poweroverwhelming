@@ -10,43 +10,49 @@
             padding: 20px;
             max-width: 800px;
             margin: 0 auto;
+            background-color: #ffffff;
+            color: #333;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
         }
         pre {
             white-space: pre-wrap;
             word-wrap: break-word;
             background-color: #f4f4f4;
-            padding: 10px;
+            padding: 15px;
             border-radius: 5px;
+            font-size: 16px;
+            line-height: 1.5;
+            min-height: 50px;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            pre {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
     <h1>AI Suggestions</h1>
-    <pre id="suggestions">Loading...</pre>
+    <pre id="suggestions">Waiting for updates...</pre>
+    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const id = urlParams.get('id');
-        if (!id) {
-            document.getElementById('suggestions').textContent = 'No ID provided.';
-        } else {
-            const fetchString = async () => {
-                try {
-                    const response = await fetch(`/api/get?id=${id}`);
-                    const data = await response.json();
-                    if (data.string) {
-                        document.getElementById('suggestions').textContent = data.string;
-                    } else {
-                        document.getElementById('suggestions').textContent = 'No suggestions available.';
-                    }
-                } catch (error) {
-                    console.error('Error fetching string:', error);
-                }
-            };
-            // Poll every 2 seconds
-            setInterval(fetchString, 2000);
-            // Fetch immediately on load
-            fetchString();
-        }
+        // Replace with your Pusher key and cluster
+        var pusher = new Pusher('YOUR_PUSHER_KEY', {
+            cluster: 'YOUR_PUSHER_CLUSTER'
+        });
+        var channel = pusher.subscribe('my-channel');
+        channel.bind('update-string', function(data) {
+            document.getElementById('suggestions').textContent = data.string;
+        });
     </script>
 </body>
 </html>

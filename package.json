@@ -1,7 +1,10 @@
 {
-  "name": "vercel-app",
+  "name": "ai-suggestions-display",
   "version": "1.0.0",
-  "dependencies": {
-    "@vercel/kv": "^0.2.0"
-  }
+  "description": "A simple Vercel app to display AI suggestions",
+  "scripts": {
+    "start": "serve ."
+  },
+  "author": "Your Name",
+  "license": "MIT"
 }
