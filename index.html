@@ -43,11 +43,13 @@
 <body>
     <h1>AI Suggestions</h1>
     <pre id="suggestions">Waiting for updates...</pre>
-    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <script>
-        // Replace with your Pusher key and cluster
-        var pusher = new Pusher('YOUR_PUSHER_KEY', {
-            cluster: 'YOUR_PUSHER_CLUSTER'
+        // Enable Pusher logging - remove this in production
+        Pusher.logToConsole = true;
+
+        var pusher = new Pusher('a0f4b427672337e6fc86', {
+            cluster: 'mt1'
         });
         var channel = pusher.subscribe('my-channel');
         channel.bind('update-string', function(data) {
