@@ -6,36 +6,54 @@
     <title>AI Suggestions</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            color: #333;
+            font-family: 'Courier New', monospace; /* Monospace for code-like feel */
+            padding: 10px;
+            margin: 0;
+            background-color: #1a1a1a; /* Dark background for contrast */
+            color: #e0e0e0; /* Light text */
+            overflow-x: hidden;
         }
         h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
+            font-size: 18px;
+            margin: 0 0 10px;
+            color: #00ccff; /* Bright cyan for title */
         }
         pre {
             white-space: pre-wrap;
             word-wrap: break-word;
-            background-color: #f4f4f4;
-            padding: 15px;
-            border-radius: 5px;
-            font-size: 16px;
-            line-height: 1.5;
-            min-height: 50px;
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.4;
         }
-        @media (max-width: 600px) {
+        .step {
+            color: #ffcc00; /* Yellow for steps */
+            margin: 10px 0 5px;
+        }
+        .code {
+            background-color: #2d2d2d; /* Dark gray for code blocks */
+            color: #00ff99; /* Neon green for code */
+            padding: 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            display: block;
+        }
+        .separator {
+            color: #ff3366; /* Pink for separators */
+            margin: 10px 0;
+        }
+        @media (max-width: 400px) { /* iPhone-sized screens */
             body {
-                padding: 10px;
+                padding: 5px;
             }
             h1 {
-                font-size: 20px;
+                font-size: 16px;
             }
             pre {
-                font-size: 14px;
+                font-size: 10px;
+            }
+            .code {
+                padding: 6px;
             }
         }
     </style>
@@ -45,15 +63,26 @@
     <pre id="suggestions">Waiting for updates...</pre>
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <script>
-        // Enable Pusher logging - remove this in production
         Pusher.logToConsole = true;
-
-        var pusher = new Pusher('a0f4b427672337e6fc86', {
-            cluster: 'mt1'
-        });
+        var pusher = new Pusher('a0f4b427672337e6fc86', { cluster: 'mt1' });
         var channel = pusher.subscribe('my-channel');
         channel.bind('update-string', function(data) {
-            document.getElementById('suggestions').textContent = data.string;
+            // Parse and format the incoming string
+            let text = data.string;
+            let formatted = '';
+            let lines = text.split('\n');
+            for (let line of lines) {
+                if (line.startsWith('Step')) {
+                    formatted += `<span class="step">${line}</span>\n`;
+                } else if (line.startsWith('Code') || line.startsWith('class') || line.startsWith('import') || line.startsWith('#')) {
+                    formatted += `<span class="code">${line}</span>\n`;
+                } else if (line.includes('───')) {
+                    formatted += `<span class="separator">${line}</span>\n`;
+                } else {
+                    formatted += `${line}\n`;
+                }
+            }
+            document.getElementById('suggestions').innerHTML = formatted;
         });
     </script>
 </body>
