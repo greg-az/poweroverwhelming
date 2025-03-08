@@ -6,53 +6,51 @@
     <title>AI Suggestions</title>
     <style>
         body {
-            font-family: 'Courier New', monospace; /* Monospace for code-like feel */
+            font-family: 'Courier New', monospace;
             padding: 10px;
             margin: 0;
-            background-color: #1a1a1a; /* Dark background for contrast */
-            color: #e0e0e0; /* Light text */
+            background-color: #1a1a1a;
+            color: #e0e0e0;
             overflow-x: hidden;
         }
         h1 {
             font-size: 18px;
             margin: 0 0 10px;
-            color: #00ccff; /* Bright cyan for title */
+            color: #00ccff;
         }
-        pre {
+        #suggestions {
             white-space: pre-wrap;
             word-wrap: break-word;
-            padding: 0;
-            margin: 0;
             font-size: 12px;
             line-height: 1.4;
         }
-        .step {
-            color: #ffcc00; /* Yellow for steps */
-            margin: 10px 0 5px;
+        .section-heading {
+            font-weight: bold;
+            color: #ffcc00; /* Yellow for headings */
+            font-size: 14px;
         }
-        .code {
-            background-color: #2d2d2d; /* Dark gray for code blocks */
-            color: #00ff99; /* Neon green for code */
+        .subsection {
+            color: #00ff99; /* Green for subsections */
+            margin-left: 10px;
+        }
+        .code-block {
+            background-color: #2d2d2d; /* Dark gray for code */
             padding: 8px;
             border-radius: 4px;
             margin: 5px 0;
             display: block;
         }
-        .separator {
-            color: #ff3366; /* Pink for separators */
-            margin: 10px 0;
-        }
-        @media (max-width: 400px) { /* iPhone-sized screens */
+        @media (max-width: 400px) {
             body {
                 padding: 5px;
             }
             h1 {
                 font-size: 16px;
             }
-            pre {
+            #suggestions {
                 font-size: 10px;
             }
-            .code {
+            .code-block {
                 padding: 6px;
             }
         }
@@ -60,28 +58,52 @@
 </head>
 <body>
     <h1>AI Suggestions</h1>
-    <pre id="suggestions">Waiting for updates...</pre>
+    <div id="suggestions">Waiting for updates...</div>
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <script>
         Pusher.logToConsole = true;
         var pusher = new Pusher('a0f4b427672337e6fc86', { cluster: 'mt1' });
         var channel = pusher.subscribe('my-channel');
         channel.bind('update-string', function(data) {
-            // Parse and format the incoming string
             let text = data.string;
             let formatted = '';
             let lines = text.split('\n');
+            let in_code_block = false;
+            let code_lines = [];
+
+            // Function to escape HTML characters
+            function escapeHtml(text) {
+                return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
             for (let line of lines) {
-                if (line.startsWith('Step')) {
-                    formatted += `<span class="step">${line}</span>\n`;
-                } else if (line.startsWith('Code') || line.startsWith('class') || line.startsWith('import') || line.startsWith('#')) {
-                    formatted += `<span class="code">${line}</span>\n`;
-                } else if (line.includes('───')) {
-                    formatted += `<span class="separator">${line}</span>\n`;
+                if (line.startsWith('```')) {
+                    if (in_code_block) {
+                        // End of code block
+                        formatted += '<pre class="code-block"><code>' + code_lines.map(escapeHtml).join('\n') + '</code></pre>\n';
+                        code_lines = [];
+                        in_code_block = false;
+                    } else {
+                        // Start of code block
+                        in_code_block = true;
+                    }
+                } else if (in_code_block) {
+                    code_lines.push(line);
+                } else if (/^\*\*(.+)\*\*:$/.test(line)) {
+                    let section_name = line.match(/^\*\*(.+)\*\*:$/)[1];
+                    formatted += `<span class="section-heading">${escapeHtml(section_name)}</span>\n`;
+                } else if (line.startsWith('- **')) {
+                    formatted += `<span class="subsection">${escapeHtml(line)}</span>\n`;
                 } else {
-                    formatted += `${line}\n`;
+                    formatted += escapeHtml(line) + '\n';
                 }
             }
+
+            // Handle unclosed code block
+            if (in_code_block) {
+                formatted += '<pre class="code-block"><code>' + code_lines.map(escapeHtml).join('\n') + '</code></pre>\n';
+            }
+
             document.getElementById('suggestions').innerHTML = formatted;
         });
     </script>
